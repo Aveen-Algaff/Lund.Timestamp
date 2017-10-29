@@ -40,9 +40,11 @@ namespace Lund.Timestamp.AspNet.MVC
         {
         }
 
-        public static ApplicationUserManager Create(IdentityFactoryOptions<ApplicationUserManager> options, IOwinContext context) 
+        public static ApplicationUserManager Create(IdentityFactoryOptions<ApplicationUserManager> options,
+            IOwinContext context)
         {
-            var manager = new ApplicationUserManager(new UserStore<ApplicationUser>(context.Get<ApplicationDbContext>()));
+            var manager =
+                new ApplicationUserManager(new UserStore<ApplicationUser>(context.Get<ApplicationDbContext>()));
             // Configure validation logic for usernames
             manager.UserValidator = new UserValidator<ApplicationUser>(manager)
             {
@@ -81,7 +83,7 @@ namespace Lund.Timestamp.AspNet.MVC
             var dataProtectionProvider = options.DataProtectionProvider;
             if (dataProtectionProvider != null)
             {
-                manager.UserTokenProvider = 
+                manager.UserTokenProvider =
                     new DataProtectorTokenProvider<ApplicationUser>(dataProtectionProvider.Create("ASP.NET Identity"));
             }
             return manager;
@@ -91,19 +93,37 @@ namespace Lund.Timestamp.AspNet.MVC
     // Configure the application sign-in manager which is used in this application.
     public class ApplicationSignInManager : SignInManager<ApplicationUser, string>
     {
-        public ApplicationSignInManager(ApplicationUserManager userManager, IAuthenticationManager authenticationManager)
+        public ApplicationSignInManager(ApplicationUserManager userManager,
+            IAuthenticationManager authenticationManager)
             : base(userManager, authenticationManager)
         {
         }
 
         public override Task<ClaimsIdentity> CreateUserIdentityAsync(ApplicationUser user)
         {
-            return user.GenerateUserIdentityAsync((ApplicationUserManager)UserManager);
+            return user.GenerateUserIdentityAsync((ApplicationUserManager) UserManager);
         }
 
-        public static ApplicationSignInManager Create(IdentityFactoryOptions<ApplicationSignInManager> options, IOwinContext context)
+        public static ApplicationSignInManager Create(IdentityFactoryOptions<ApplicationSignInManager> options,
+            IOwinContext context)
         {
-            return new ApplicationSignInManager(context.GetUserManager<ApplicationUserManager>(), context.Authentication);
+            return new ApplicationSignInManager(context.GetUserManager<ApplicationUserManager>(),
+                context.Authentication);
+        }
+    }
+    // Add ApplicationRoleManager to allow the management of Roles ********************************
+    public class ApplicationRoleManager : RoleManager<IdentityRole>
+    {
+        public ApplicationRoleManager(IRoleStore<IdentityRole, string> store)
+            : base(store)
+        {
+        }
+
+        public static ApplicationRoleManager Create(IdentityFactoryOptions<ApplicationRoleManager> options,
+            IOwinContext context)
+        {
+            var roleStore = new RoleStore<IdentityRole>(context.Get<ApplicationDbContext>());
+            return new ApplicationRoleManager(roleStore);
         }
     }
 }
